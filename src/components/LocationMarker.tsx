@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { Mesh, Vector3 } from "three";
+import { Mesh, Vector3, MeshBasicMaterial } from "three";
 import { Html } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
 
@@ -35,7 +35,7 @@ export default function LocationMarker({ lat, lng, label }: LocationMarkerProps)
 
     // Pulsing animation
     if (pulsingRingRef.current?.material) {
-      const material = pulsingRingRef.current.material as THREE.MeshBasicMaterial;
+      const material = pulsingRingRef.current.material as MeshBasicMaterial;
       material.opacity = 0.3 + Math.sin(clock.getElapsedTime() * 2) * 0.1;
     }
   });
@@ -73,7 +73,7 @@ export default function LocationMarker({ lat, lng, label }: LocationMarkerProps)
             opacity: scale > 0.05 ? 1 : 0,
           }}
         >
-          <div className="bg-white/90 px-2 py-1 rounded-md text-sm shadow-md whitespace-nowrap">
+          <div className="bg-white/90 text-black/70 px-2 py-1 rounded-md text-sm shadow-md whitespace-nowrap">
             <div className="font-semibold">{label}</div>
             <div className="text-xs text-gray-600">
               {lat.toFixed(4)}°, {lng.toFixed(4)}°
