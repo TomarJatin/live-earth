@@ -3,10 +3,12 @@
 import { View } from "@react-three/drei";
 import Earth from "@/components/Earth";
 import { useState, useEffect } from "react";
+import LocationSearch from '@/components/LocationSearch';
 
 export default function Page() {
   const [locationPermission, setLocationPermission] = useState<string>("prompt");
   const [locationError, setLocationError] = useState<string | null>(null);
+  const [searchLocation, setSearchLocation] = useState<{lat: number; lng: number} | null>(null);
 
   useEffect(() => {
     // Check location permission status
@@ -25,10 +27,15 @@ export default function Page() {
   }, []);
 
   return (
-    <div className="h-screen w-full relative">
+    <div className="h-screen w-full relative text-black">
       <View className="h-full w-full">
-        <Earth onError={setLocationError} />
+        <Earth onError={setLocationError} searchLocation={searchLocation} />
       </View>
+
+      {/* Add Search Component */}
+      <div className="absolute top-4 right-4 z-10">
+        <LocationSearch onSearch={setSearchLocation} />
+      </div>
 
       {/* Location Permission Messages */}
       {locationPermission === "prompt" && (

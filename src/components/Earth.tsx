@@ -2,18 +2,20 @@
 
 import { useRef, useState, useEffect } from "react";
 import { useTexture, OrbitControls, Sphere } from "@react-three/drei";
-import { Mesh, DoubleSide } from "three";
+import { useThree } from "@react-three/fiber";
+import { Mesh, DoubleSide, Vector3 } from "three";
 import LocationMarker from "./LocationMarker";
+import SearchMarker from "./SearchMarker";
 
 interface EarthProps {
   onError: (error: string | null) => void;
+  searchLocation: { lat: number; lng: number } | null;
 }
 
-export default function Earth({ onError }: EarthProps) {
+export default function Earth({ onError, searchLocation }: EarthProps) {
   const earthRef = useRef<Mesh>(null);
   const [userLocation, setUserLocation] = useState<{lat: number; lng: number} | null>(null);
-//   const [retryCount, setRetryCount] = useState(0);
-//   const MAX_RETRIES = 3;
+  const { camera } = useThree();
   
   // Load all textures
   const [worldMap] = useTexture([
@@ -71,6 +73,42 @@ export default function Earth({ onError }: EarthProps) {
     }
   }, [onError]);
 
+  useEffect(() => {
+    if (searchLocation && earthRef.current) {
+      const phi = (90 - searchLocation.lat) * (Math.PI / 180);
+      const theta = (searchLocation.lng + 180) * (Math.PI / 180);
+      
+      const x = -(5 * Math.sin(phi) * Math.cos(theta));
+      const y = 5 * Math.cos(phi);
+      const z = 5 * Math.sin(phi) * Math.sin(theta);
+
+      // Animate camera position
+      const duration = 1000;
+      const start = Date.now();
+      const startPos = camera.position.clone();
+      const targetPos = new Vector3(x, y, z);
+
+      function animate() {
+        const elapsed = Date.now() - start;
+        const progress = Math.min(elapsed / duration, 1);
+        
+        // Ease function
+        const eased = progress < 0.5
+          ? 2 * progress * progress
+          : -1 + (4 - 2 * progress) * progress;
+
+        camera.position.lerpVectors(startPos, targetPos, eased);
+        camera.lookAt(0, 0, 0);
+
+        if (progress < 1) {
+          requestAnimationFrame(animate);
+        }
+      }
+
+      animate();
+    }
+  }, [searchLocation]);
+
   return (
     <>
       <OrbitControls 
@@ -84,17 +122,6 @@ export default function Earth({ onError }: EarthProps) {
         maxDistance={10}
       />
 
-      {/* <ambientLight intensity={1.5} /> */}
-      {/* <directionalLight 
-        intensity={2} 
-        position={[0, 0, 5]} 
-        castShadow
-      /> */}
-      {/* <hemisphereLight
-        intensity={0.8}
-        color="#ffffff"
-        groundColor="#000000"
-      /> */}
 
       <Sphere ref={earthRef} args={[2, 64, 64]}>
         <shaderMaterial
@@ -158,7 +185,15 @@ export default function Earth({ onError }: EarthProps) {
         <LocationMarker 
           lat={userLocation.lat} 
           lng={userLocation.lng}
-          label={`Your Location (${userLocation.lat.toFixed(2)}°, ${userLocation.lng.toFixed(2)}°)`}
+          label="Your Location"
+        />
+      )}
+
+      {searchLocation && (
+        <SearchMarker 
+          lat={searchLocation.lat} 
+          lng={searchLocation.lng}
+          label="Searched Location"
         />
       )}
     </>

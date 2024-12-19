@@ -26,7 +26,7 @@ export default function EarthPage() {
 
   return (
     <div className="h-screen w-full relative">
-      <View className="h-full w-full">
+      <View className="h-full w-full bg-black">
         <Earth onError={setLocationError} />
       </View>
 
