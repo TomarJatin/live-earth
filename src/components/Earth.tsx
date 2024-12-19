@@ -86,8 +86,17 @@ export default function Earth({ onError }: EarthProps) {
         maxDistance={10}
       />
 
-      <ambientLight intensity={0.1} />
-      <directionalLight intensity={3.5} position={[1, 0, 2]} />
+      <ambientLight intensity={1} />
+      {/* <directionalLight 
+        intensity={2} 
+        position={[0, 0, 5]} 
+        castShadow
+      /> */}
+      <hemisphereLight
+        intensity={0.5}
+        color="#ffffff"
+        groundColor="#000000"
+      />
 
       <Sphere ref={earthRef} args={[2, 64, 64]}>
         <meshPhongMaterial
