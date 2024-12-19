@@ -114,6 +114,23 @@ export default function Earth({ onError }: EarthProps) {
           fragmentShader={`
             uniform sampler2D map;
             varying vec2 vUv;
+
+            // Function to create hexagonal pattern
+            float createHex(vec2 p, float size) {
+              p *= size;
+              
+              // Hexagonal tiling
+              vec2 h = vec2(1.0, sqrt(3.0));
+              vec2 a = mod(p, h) - h*0.5;
+              vec2 b = mod(p + h*0.5, h) - h*0.5;
+              
+              // Calculate hexagon
+              vec2 gv = length(a) < length(b) ? a : b;
+              float hex = length(gv);
+              
+              return smoothstep(0.3, 0.2, hex);
+            }
+
             void main() {
               vec4 texColor = texture2D(map, vUv);
               float brightness = (texColor.r + texColor.g + texColor.b) / 3.0;
@@ -124,10 +141,14 @@ export default function Earth({ onError }: EarthProps) {
               // Define the target color (#2cff05) in RGB
               vec3 targetColor = vec3(0.172, 1.0, 0.019);
               
-              // Apply the green color to visible areas
-              vec3 finalColor = targetColor;
+              // Create hexagonal pattern with much smaller hexagons
+              float hexPattern = createHex(vUv * 2.0, 200.0);
               
-              gl_FragColor = vec4(finalColor, alpha);
+              // Apply hexagons only to visible areas
+              vec3 finalColor = targetColor;
+              float finalAlpha = alpha * (hexPattern * 0.5 + 0.5);
+              
+              gl_FragColor = vec4(finalColor, finalAlpha);
             }
           `}
         />
