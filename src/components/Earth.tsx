@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import { useTexture, OrbitControls, Sphere } from "@react-three/drei";
-import { Mesh } from "three";
+import { Mesh, DoubleSide } from "three";
 import LocationMarker from "./LocationMarker";
 
 interface EarthProps {
@@ -16,10 +16,8 @@ export default function Earth({ onError }: EarthProps) {
 //   const MAX_RETRIES = 3;
   
   // Load all textures
-  const [colorMap, normalMap, specularMap] = useTexture([
-    '/textures/earth-day.jpg',
-    '/textures/earth-normal.jpg',
-    '/textures/earth-specular.jpg'
+  const [worldMap] = useTexture([
+    '/textures/world-map.png',
   ]);
 
   useEffect(() => {
@@ -86,24 +84,52 @@ export default function Earth({ onError }: EarthProps) {
         maxDistance={10}
       />
 
-      <ambientLight intensity={1} />
+      {/* <ambientLight intensity={1.5} /> */}
       {/* <directionalLight 
         intensity={2} 
         position={[0, 0, 5]} 
         castShadow
       /> */}
-      <hemisphereLight
-        intensity={0.5}
+      {/* <hemisphereLight
+        intensity={0.8}
         color="#ffffff"
         groundColor="#000000"
-      />
+      /> */}
 
       <Sphere ref={earthRef} args={[2, 64, 64]}>
-        <meshPhongMaterial
-          map={colorMap}
-          normalMap={normalMap}
-          specularMap={specularMap}
-          shininess={5}
+        <shaderMaterial
+          transparent={true}
+          side={DoubleSide}
+          depthWrite={false}
+          uniforms={{
+            map: { value: worldMap }
+          }}
+          vertexShader={`
+            varying vec2 vUv;
+            void main() {
+              vUv = uv;
+              gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+            }
+          `}
+          fragmentShader={`
+            uniform sampler2D map;
+            varying vec2 vUv;
+            void main() {
+              vec4 texColor = texture2D(map, vUv);
+              float brightness = (texColor.r + texColor.g + texColor.b) / 3.0;
+              
+              // Make dark areas completely transparent and light areas slightly visible
+              float alpha = smoothstep(0.1, 0.15, brightness) * 0.3;
+              
+              // Define the target color (#2cff05) in RGB
+              vec3 targetColor = vec3(0.172, 1.0, 0.019);
+              
+              // Apply the green color to visible areas
+              vec3 finalColor = targetColor;
+              
+              gl_FragColor = vec4(finalColor, alpha);
+            }
+          `}
         />
       </Sphere>
 
