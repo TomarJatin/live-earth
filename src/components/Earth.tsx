@@ -163,7 +163,7 @@ export default function Earth({ onError, searchLocation }: EarthProps) {
               float brightness = (texColor.r + texColor.g + texColor.b) / 3.0;
               
               // Make dark areas completely transparent and light areas slightly visible
-              float alpha = smoothstep(0.1, 0.15, brightness) * 0.3;
+              float alpha = smoothstep(0.1, 0.15, brightness) * 1.3;
               
               // Define the target color (#2cff05) in RGB
               vec3 targetColor = vec3(0.172, 1.0, 0.019);
