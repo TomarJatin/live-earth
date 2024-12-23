@@ -2,7 +2,7 @@
 
 import { useRef, useState, useEffect } from "react";
 import { useTexture, OrbitControls, Sphere } from "@react-three/drei";
-import { useThree } from "@react-three/fiber";
+import { useThree, useFrame } from "@react-three/fiber";
 import { Mesh, DoubleSide, Vector3 } from "three";
 import LocationMarker from "./LocationMarker";
 import SearchMarker from "./SearchMarker";
@@ -22,6 +22,8 @@ export default function Earth({ onError, searchLocation }: EarthProps) {
     '/textures/world-map.png',
   ]);
 
+  const rotationSpeed = 0.005;
+  
   useEffect(() => {
     const fallbackToIPLocation = async () => {
       try {
@@ -109,6 +111,18 @@ export default function Earth({ onError, searchLocation }: EarthProps) {
     }
   }, [searchLocation]);
 
+  useFrame(() => {
+    if (earthRef.current) {
+      earthRef.current.rotation.y += rotationSpeed;
+      
+      // Update markers rotation to counter Earth's rotation
+      const markerGroup = earthRef.current.children[1]; // Group containing markers
+      if (markerGroup) {
+        markerGroup.rotation.y = -earthRef.current.rotation.y;
+      }
+    }
+  });
+
   return (
     <>
       <OrbitControls 
@@ -121,7 +135,6 @@ export default function Earth({ onError, searchLocation }: EarthProps) {
         minDistance={2.5}
         maxDistance={10}
       />
-
 
       <Sphere ref={earthRef} args={[2, 64, 64]}>
         <shaderMaterial
@@ -154,7 +167,7 @@ export default function Earth({ onError, searchLocation }: EarthProps) {
               float brightness = (texColor.r + texColor.g + texColor.b) / 3.0;
               
               // Make dark areas completely transparent and light areas slightly visible
-              float alpha = smoothstep(0.1, 0.15, brightness) * 1.3;
+              float alpha = smoothstep(0.1, 0.15, brightness) * 1.6;
               
               // Define the target color in RGB
               vec3 targetColor = vec3(0.5, 0.5, 0.5);
@@ -164,29 +177,31 @@ export default function Earth({ onError, searchLocation }: EarthProps) {
               
               // Apply lines only to visible areas
               vec3 finalColor = targetColor;
-              float finalAlpha = alpha * (linePattern * 0.5 + 0.5);
+              float finalAlpha = clamp(alpha * (linePattern * 0.5 + 0.5), 0.1, 1.0);
               
               gl_FragColor = vec4(finalColor, finalAlpha);
             }
           `}
         />
+        
+        <group>
+          {userLocation && (
+            <LocationMarker 
+              lat={userLocation.lat} 
+              lng={userLocation.lng}
+              label="Your Location"
+            />
+          )}
+
+          {searchLocation && (
+            <SearchMarker 
+              lat={searchLocation.lat} 
+              lng={searchLocation.lng}
+              label="Searched Location"
+            />
+          )}
+        </group>
       </Sphere>
-
-      {userLocation && (
-        <LocationMarker 
-          lat={userLocation.lat} 
-          lng={userLocation.lng}
-          label="Your Location"
-        />
-      )}
-
-      {searchLocation && (
-        <SearchMarker 
-          lat={searchLocation.lat} 
-          lng={searchLocation.lng}
-          label="Searched Location"
-        />
-      )}
     </>
   );
 }

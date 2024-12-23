@@ -27,8 +27,36 @@ export default function Page() {
   }, []);
 
   return (
-    <div className="h-screen w-full relative text-black " >
-      <View className="h-full w-full">
+    <div className="h-screen w-full relative text-black">
+      {/* Add space background */}
+      <div 
+        className="absolute inset-0 bg-black"
+        style={{
+          background: 'radial-gradient(circle at center, #0a192f 0%, #000000 100%)',
+        }}
+      >
+        {/* First star layer - slower moving */}
+        <div className="stars-container absolute inset-0" 
+          style={{
+            background: 'transparent url(/textures/stars.png) repeat top center',
+            zIndex: 0,
+            animation: 'move-stars 400s linear infinite',
+            opacity: 0.6
+          }}
+        />
+        {/* Second star layer - faster moving for parallax effect */}
+        <div className="stars-container absolute inset-0" 
+          style={{
+            background: 'transparent url(/textures/stars.png) repeat top center',
+            zIndex: 0,
+            animation: 'move-stars 200s linear infinite',
+            opacity: 0.3,
+            transform: 'scale(0.8)'
+          }}
+        />
+      </div>
+
+      <View className="h-full w-full relative z-10">
         <Earth onError={setLocationError} searchLocation={searchLocation} />
       </View>
 
