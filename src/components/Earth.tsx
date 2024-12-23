@@ -142,20 +142,11 @@ export default function Earth({ onError, searchLocation }: EarthProps) {
             uniform sampler2D map;
             varying vec2 vUv;
 
-            // Function to create hexagonal pattern
-            float createHex(vec2 p, float size) {
-              p *= size;
-              
-              // Hexagonal tiling
-              vec2 h = vec2(1.0, sqrt(3.0));
-              vec2 a = mod(p, h) - h*0.5;
-              vec2 b = mod(p + h*0.5, h) - h*0.5;
-              
-              // Calculate hexagon
-              vec2 gv = length(a) < length(b) ? a : b;
-              float hex = length(gv);
-              
-              return smoothstep(0.3, 0.2, hex);
+            // Function to create line pattern
+            float createLines(vec2 p, float size) {
+              // Create diagonal lines
+              float lines = sin(p.x * size + p.y * size) * 0.5 + 0.5;
+              return smoothstep(0.45, 0.55, lines);
             }
 
             void main() {
@@ -165,15 +156,15 @@ export default function Earth({ onError, searchLocation }: EarthProps) {
               // Make dark areas completely transparent and light areas slightly visible
               float alpha = smoothstep(0.1, 0.15, brightness) * 1.3;
               
-              // Define the target color (#2cff05) in RGB
-              vec3 targetColor = vec3(0.172, 1.0, 0.019);
+              // Define the target color in RGB
+              vec3 targetColor = vec3(0.5, 0.5, 0.5);
               
-              // Create hexagonal pattern with much smaller hexagons
-              float hexPattern = createHex(vUv * 2.0, 200.0);
+              // Create line pattern with increased frequency
+              float linePattern = createLines(vUv * 5.0, 500.0);
               
-              // Apply hexagons only to visible areas
+              // Apply lines only to visible areas
               vec3 finalColor = targetColor;
-              float finalAlpha = alpha * (hexPattern * 0.5 + 0.5);
+              float finalAlpha = alpha * (linePattern * 0.5 + 0.5);
               
               gl_FragColor = vec4(finalColor, finalAlpha);
             }

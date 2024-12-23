@@ -1,7 +1,9 @@
 import { useRef, useState } from "react";
-import { Mesh, Vector3, MeshBasicMaterial } from "three";
-import { Html } from "@react-three/drei";
+import { Vector3 } from "three";
+// import { Html } from "@react-three/drei";
 import { useFrame, useThree } from "@react-three/fiber";
+import * as THREE from "three";
+import { Sprite } from "three";
 
 interface SearchMarkerProps {
   lat: number;
@@ -10,10 +12,12 @@ interface SearchMarkerProps {
 }
 
 export default function SearchMarker({ lat, lng, label }: SearchMarkerProps) {
-  const markerRef = useRef<Mesh>(null);
-  const pulsingRingRef = useRef<Mesh>(null);
+  const markerRef = useRef<Sprite>(null);
   const { camera } = useThree();
   const [scale, setScale] = useState(1);
+  console.log(label)
+
+  const texture = new THREE.TextureLoader().load('./location-pin.png');
 
   const phi = (90 - lat) * (Math.PI / 180);
   const theta = (lng + 180) * (Math.PI / 180);
@@ -22,44 +26,25 @@ export default function SearchMarker({ lat, lng, label }: SearchMarkerProps) {
   const y = 2 * Math.cos(phi);
   const z = 2 * Math.sin(phi) * Math.sin(theta);
 
-  useFrame(({ clock }) => {
+  useFrame(() => {
     if (markerRef.current) {
       const distance = camera.position.distanceTo(new Vector3(x, y, z));
       const newScale = Math.max(0.02, Math.min(0.08, distance * 0.02));
       setScale(newScale);
     }
-
-    if (pulsingRingRef.current?.material) {
-      const material = pulsingRingRef.current.material as MeshBasicMaterial;
-      material.opacity = 0.3 + Math.sin(clock.getElapsedTime() * 2) * 0.1;
-    }
   });
 
   return (
     <group position={[x, y, z]}>
-      {/* Outer ring */}
-      <mesh rotation-x={Math.PI / 2} scale={scale * 1.2}>
-        <ringGeometry args={[0.5, 0.7, 32]} />
-        <meshBasicMaterial color="#4444FF" transparent opacity={0.5} />
-      </mesh>
+      <sprite ref={markerRef} scale={[scale * 2, scale * 2.5, 1]}>
+        <spriteMaterial
+          map={texture}
+          transparent
+          sizeAttenuation={true}
+        />
+      </sprite>
 
-      {/* Inner dot */}
-      <mesh ref={markerRef} scale={scale * 0.4}>
-        <sphereGeometry args={[1, 16, 16]} />
-        <meshBasicMaterial color="#0000FF" />
-      </mesh>
-
-      {/* Pulsing ring */}
-      <mesh 
-        ref={pulsingRingRef} 
-        rotation-x={Math.PI / 2} 
-        scale={scale * 1.5}
-      >
-        <ringGeometry args={[0.8, 0.9, 32]} />
-        <meshBasicMaterial color="#4444FF" transparent opacity={0.3} />
-      </mesh>
-
-      {label && (
+      {/* {label && (
         <Html
           position={[0, scale * 2, 0]}
           center
@@ -75,7 +60,7 @@ export default function SearchMarker({ lat, lng, label }: SearchMarkerProps) {
             </div>
           </div>
         </Html>
-      )}
+      )} */}
     </group>
   );
 }
