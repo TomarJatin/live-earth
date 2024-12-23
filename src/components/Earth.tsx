@@ -2,20 +2,50 @@
 
 import { useRef, useState, useEffect } from "react";
 import { useTexture, OrbitControls, Sphere } from "@react-three/drei";
-import { useThree, useFrame } from "@react-three/fiber";
-import { Mesh, DoubleSide, Vector3 } from "three";
+import { 
+  // useThree,
+ useFrame } from "@react-three/fiber";
+import { Mesh, DoubleSide, 
+  // Vector3
+
+ } from "three";
 import LocationMarker from "./LocationMarker";
 import SearchMarker from "./SearchMarker";
 
-interface EarthProps {
-  onError: (error: string | null) => void;
-  searchLocation: { lat: number; lng: number } | null;
+// Add this interface for our location data
+interface Location {
+  lat: number;
+  lng: number;
+  label: string;
 }
 
-export default function Earth({ onError, searchLocation }: EarthProps) {
+// Add this constant array of predefined locations
+const PREDEFINED_LOCATIONS: Location[] = [
+  { lat: 40.7128, lng: -74.0060, label: "New York, USA" },
+  { lat: -33.8688, lng: 151.2093, label: "Sydney, Australia" },
+  { lat: 35.6762, lng: 139.6503, label: "Tokyo, Japan" },
+  { lat: 51.5074, lng: -0.1278, label: "London, UK" },
+  { lat: -1.2921, lng: 36.8219, label: "Nairobi, Kenya" },
+  { lat: -22.9068, lng: -43.1729, label: "Rio de Janeiro, Brazil" },
+  { lat: 55.7558, lng: 37.6173, label: "Moscow, Russia" },
+  { lat: 31.2304, lng: 121.4737, label: "Shanghai, China" },
+  { lat: -34.6037, lng: -58.3816, label: "Buenos Aires, Argentina" },
+  { lat: 28.6139, lng: 77.2090, label: "New Delhi, India" },
+  { lat: 64.1265, lng: -21.8174, label: "Reykjavik, Iceland" },
+  { lat: 1.3521, lng: 103.8198, label: "Singapore" }
+];
+
+interface EarthProps {
+  onError: (error: string | null) => void;
+  // searchLocation: { lat: number; lng: number } | null;
+}
+
+export default function Earth({ onError, 
+  // searchLocation
+ }: EarthProps) {
   const earthRef = useRef<Mesh>(null);
   const [userLocation, setUserLocation] = useState<{lat: number; lng: number} | null>(null);
-  const { camera } = useThree();
+  // const { camera } = useThree();
   
   // Load all textures
   const [worldMap] = useTexture([
@@ -75,41 +105,41 @@ export default function Earth({ onError, searchLocation }: EarthProps) {
     }
   }, [onError]);
 
-  useEffect(() => {
-    if (searchLocation && earthRef.current) {
-      const phi = (90 - searchLocation.lat) * (Math.PI / 180);
-      const theta = (searchLocation.lng + 180) * (Math.PI / 180);
+  // useEffect(() => {
+  //   if (searchLocation && earthRef.current) {
+  //     const phi = (90 - searchLocation.lat) * (Math.PI / 180);
+  //     const theta = (searchLocation.lng + 180) * (Math.PI / 180);
       
-      const x = -(5 * Math.sin(phi) * Math.cos(theta));
-      const y = 5 * Math.cos(phi);
-      const z = 5 * Math.sin(phi) * Math.sin(theta);
+  //     const x = -(5 * Math.sin(phi) * Math.cos(theta));
+  //     const y = 5 * Math.cos(phi);
+  //     const z = 5 * Math.sin(phi) * Math.sin(theta);
 
-      // Animate camera position
-      const duration = 1000;
-      const start = Date.now();
-      const startPos = camera.position.clone();
-      const targetPos = new Vector3(x, y, z);
+  //     // Animate camera position
+  //     const duration = 1000;
+  //     const start = Date.now();
+  //     const startPos = camera.position.clone();
+  //     const targetPos = new Vector3(x, y, z);
 
-      function animate() {
-        const elapsed = Date.now() - start;
-        const progress = Math.min(elapsed / duration, 1);
+  //     function animate() {
+  //       const elapsed = Date.now() - start;
+  //       const progress = Math.min(elapsed / duration, 1);
         
-        // Ease function
-        const eased = progress < 0.5
-          ? 2 * progress * progress
-          : -1 + (4 - 2 * progress) * progress;
+  //       // Ease function
+  //       const eased = progress < 0.5
+  //         ? 2 * progress * progress
+  //         : -1 + (4 - 2 * progress) * progress;
 
-        camera.position.lerpVectors(startPos, targetPos, eased);
-        camera.lookAt(0, 0, 0);
+  //       camera.position.lerpVectors(startPos, targetPos, eased);
+  //       camera.lookAt(0, 0, 0);
 
-        if (progress < 1) {
-          requestAnimationFrame(animate);
-        }
-      }
+  //       if (progress < 1) {
+  //         requestAnimationFrame(animate);
+  //       }
+  //     }
 
-      animate();
-    }
-  }, [searchLocation]);
+  //     animate();
+  //   }
+  // }, [searchLocation]);
 
   useFrame(() => {
     if (earthRef.current) {
@@ -193,13 +223,23 @@ export default function Earth({ onError, searchLocation }: EarthProps) {
             />
           )}
 
-          {searchLocation && (
+          {/* Add this section to render all predefined locations */}
+          {PREDEFINED_LOCATIONS.map((location, index) => (
+            <SearchMarker 
+              key={index}
+              lat={location.lat}
+              lng={location.lng}
+              label={location.label}
+            />
+          ))}
+
+          {/* {searchLocation && (
             <SearchMarker 
               lat={searchLocation.lat} 
               lng={searchLocation.lng}
               label="Searched Location"
             />
-          )}
+          )} */}
         </group>
       </Sphere>
     </>
