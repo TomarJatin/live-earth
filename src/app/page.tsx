@@ -27,7 +27,7 @@ export default function Page() {
   }, []);
 
   return (
-    <div className="h-screen w-full relative text-black">
+    <div className="h-screen w-full relative text-black " >
       <View className="h-full w-full">
         <Earth onError={setLocationError} searchLocation={searchLocation} />
       </View>
