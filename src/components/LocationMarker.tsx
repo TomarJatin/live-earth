@@ -45,6 +45,9 @@ export default function LocationMarker({ lat, lng, label }: LocationMarkerProps)
           map={texture}
           transparent
           sizeAttenuation={true}
+          depthTest={true}
+          depthWrite={false}
+          alphaTest={0.5}
         />
       </sprite>
 
