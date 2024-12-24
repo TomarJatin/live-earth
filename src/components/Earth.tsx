@@ -43,6 +43,8 @@ interface EarthProps {
 export default function Earth({ onError, 
   // searchLocation
  }: EarthProps) {
+  // Add state for tracking user interaction
+  const [isInteracting, setIsInteracting] = useState(false);
   const earthRef = useRef<Mesh>(null);
   const [userLocation, setUserLocation] = useState<{lat: number; lng: number} | null>(null);
   // const { camera } = useThree();
@@ -52,7 +54,7 @@ export default function Earth({ onError,
     '/textures/world-map.png',
   ]);
 
-  const rotationSpeed = 0.005;
+  const rotationSpeed = 0.002;
   
   useEffect(() => {
     const fallbackToIPLocation = async () => {
@@ -142,11 +144,11 @@ export default function Earth({ onError,
   // }, [searchLocation]);
 
   useFrame(() => {
-    if (earthRef.current) {
+    if (earthRef.current && !isInteracting) {  // Only rotate when not interacting
       earthRef.current.rotation.y += rotationSpeed;
       
       // Update markers rotation to counter Earth's rotation
-      const markerGroup = earthRef.current.children[1]; // Group containing markers
+      const markerGroup = earthRef.current.children[1];
       if (markerGroup) {
         markerGroup.rotation.y = -earthRef.current.rotation.y;
       }
@@ -164,6 +166,8 @@ export default function Earth({ onError,
         rotateSpeed={0.4}
         minDistance={2.5}
         maxDistance={10}
+        onStart={() => setIsInteracting(true)}
+        onEnd={() => setIsInteracting(false)}
       />
 
       <Sphere ref={earthRef} args={[2, 64, 64]}>
