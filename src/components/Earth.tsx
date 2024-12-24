@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, useEffect } from "react";
+import { useRef, useState, useEffect, useMemo } from "react";
 import { useTexture, OrbitControls, Sphere } from "@react-three/drei";
 import { 
   // useThree,
@@ -155,6 +155,32 @@ export default function Earth({ onError,
     }
   });
 
+  // Memoize both location marker and search markers
+  const memoizedMarkers = useMemo(() => {
+    const markers = PREDEFINED_LOCATIONS.map((location, index) => (
+      <SearchMarker 
+        key={index}
+        lat={location.lat}
+        lng={location.lng}
+        label={location.label}
+      />
+    ));
+
+    // Add user location marker if available
+    if (userLocation) {
+      markers.push(
+        <LocationMarker 
+          key="user-location"
+          lat={userLocation.lat} 
+          lng={userLocation.lng}
+          label="Your Location"
+        />
+      );
+    }
+
+    return markers;
+  }, [userLocation]); // Add userLocation as dependency since it can change
+
   return (
     <>
       <OrbitControls 
@@ -219,31 +245,8 @@ export default function Earth({ onError,
         />
         
         <group>
-          {userLocation && (
-            <LocationMarker 
-              lat={userLocation.lat} 
-              lng={userLocation.lng}
-              label="Your Location"
-            />
-          )}
-
-          {/* Add this section to render all predefined locations */}
-          {PREDEFINED_LOCATIONS.map((location, index) => (
-            <SearchMarker 
-              key={index}
-              lat={location.lat}
-              lng={location.lng}
-              label={location.label}
-            />
-          ))}
-
-          {/* {searchLocation && (
-            <SearchMarker 
-              lat={searchLocation.lat} 
-              lng={searchLocation.lng}
-              label="Searched Location"
-            />
-          )} */}
+          {/* Replace both markers with the single memoized array */}
+          {memoizedMarkers}
         </group>
       </Sphere>
     </>
